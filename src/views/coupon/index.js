@@ -1,29 +1,34 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
-  CBadge,
   CButton,
   CCard,
   CCardBody,
   CCardHeader,
   CCol,
   CDataTable,
-  CForm,
-  CFormGroup,
-  CFormText,
-  CInput,
-  CLabel,
   CRow,
+  CSpinner,
   CCardFooter,
-  CSelect,
-  CTextarea,
+  CModal,
+  CModalBody,
 } from "@coreui/react";
 import CIcon from "@coreui/icons-react";
+import * as Type from "../../reusable/Constant";
+import moment from "moment";
+import CouponForm from "./components/couponForm";
+
+const axios = require("axios");
 
 const fields = [
   "name",
+  "description",
+  "quantity",
+  "discount",
   "code",
-  "date_expired",
-  "salon_apply",
+  {
+    key: "createdDate",
+    label: "Created Date",
+  },
   {
     key: "edit",
     label: "",
@@ -31,69 +36,147 @@ const fields = [
     filter: false,
   },
 ];
-const data = [
-  {
-    name: "Cardguard",
-    code: "36987-1235",
-    date_expired: "07/01/2021",
-    salon_apply: "All Salon",
-  },
-  {
-    name: "Home Ing",
-    code: "56062-294",
-    date_expired: "18/02/2021",
-    salon_apply: "All Salon",
-  },
-  {
-    name: "Ventosanzap",
-    code: "54838-510",
-    date_expired: "15/02/2021",
-    salon_apply: "All Salon",
-  },
-  {
-    name: "Daltfresh",
-    code: "63354-401",
-    date_expired: "26/01/2021",
-    salon_apply: "All Salon",
-  },
-  {
-    name: "Daltfresh",
-    code: "43269-876",
-    date_expired: "27/06/2020",
-    salon_apply: "All Salon",
-  },
-  {
-    name: "Quo Lux",
-    code: "63187-127",
-    date_expired: "06/07/2020",
-    salon_apply: "All Salon",
-  },
-  {
-    name: "Konklab",
-    code: "45802-034",
-    date_expired: "29/07/2020",
-    salon_apply: "All Salon",
-  },
-  {
-    name: "Fix San",
-    code: "0268-0813",
-    date_expired: "19/12/2020",
-    salon_apply: "All Salon",
-  },
-  {
-    name: "Bamity",
-    code: "0363-0737",
-    date_expired: "19/08/2020",
-    salon_apply: "All Salon",
-  },
-  {
-    name: "Opela",
-    code: "34645-4242",
-    date_expired: "03/10/2020",
-    salon_apply: "All Salon",
-  },
-];
+
 const Coupon = () => {
+  const [listCoupon, setListCoupon] = useState([]);
+  const [createStatus, setCreateStatus] = useState(true);
+  const [modal, setModal] = useState(false);
+  const [status, setStatus] = useState(false);
+  const [coupon, setCoupon] = useState({
+    name: "",
+    description: "",
+    quantity: 1,
+    discount: 1,
+    code: "",
+  });
+  const handleChangeInput = (e) => {
+    e.persist();
+    setCoupon({
+      ...coupon,
+      [e.target.name]:
+        e.target.type === "checkbox" ? e.target.checked : e.target.value,
+    });
+  };
+  const getAllCoupon = async () => {
+    await axios({
+      method: "get",
+      url: `${Type.Url}/manager/allDiscounts`,
+    }).then((res) => {
+      if (res && res.status === 200) {
+        setListCoupon(res.data.discounts);
+      }
+    });
+  };
+  const getByCouponId = async (id) => {
+    setCreateStatus(false);
+    await axios({
+      method: "get",
+      url: `${Type.Url}/manager/discountById?id=${id}`,
+    }).then((res) => {
+      if (res && res.status === 200) {
+        setCoupon({ ...coupon, ...res.data.discount });
+      }
+    });
+  };
+  const onCreateCoupon = async () => {
+    if (
+      coupon.name !== "" &&
+      coupon.quantity !== 0 &&
+      coupon.discount !== 0 &&
+      coupon.code !== ""
+    ) {
+      setModal(true);
+      var dataCreate = {
+        ...coupon,
+        code: coupon.code.toUpperCase(),
+      };
+      await axios({
+        method: "post",
+        url: `${Type.Url}/manager/createDiscount`,
+        data: dataCreate,
+        headers: {
+          Authorization: `Bearer ${Type.token}`,
+        },
+      }).then((res) => {
+        if (res && res.status === 200) {
+          getAllCoupon();
+          setModal(false);
+          setCoupon({
+            name: "",
+            description: "",
+            quantity: 0,
+            discount: 0,
+            code: "",
+          });
+        }
+      });
+    }
+  };
+  const onUpdateCoupon = async () => {
+    if (
+      coupon.name !== "" &&
+      coupon.quantity !== 0 &&
+      coupon.discount !== 0 &&
+      coupon.code !== ""
+    ) {
+      setModal(true);
+      var dataUpdate = {
+        ...coupon,
+        code: coupon.code.toUpperCase(),
+      };
+      await axios({
+        method: "patch",
+        url: `${Type.Url}/manager/editDiscount?id=${coupon._id}`,
+        data: dataUpdate,
+        headers: {
+          Authorization: `Bearer ${Type.token}`,
+        },
+      }).then((res) => {
+        if (res && res.status === 200) {
+          getAllCoupon();
+          setModal(false);
+          setCreateStatus(true);
+          setCoupon({
+            name: "",
+            description: "",
+            quantity: 0,
+            discount: 0,
+            code: "",
+          });
+        }
+      });
+    }
+  };
+  const deleteCoupon = async (Id) => {
+    setModal(true);
+    axios({
+      method: "delete",
+      url: `${Type.Url}/manager/deleteDiscount`,
+      data: { id: Id },
+      headers: {
+        Authorization: `Bearer ${Type.token}`,
+      },
+    }).then((res) => {
+      if (res && res.status === 200) {
+        getAllCoupon();
+        setModal(false);
+      }
+    });
+  };
+
+  useEffect(() => {
+    getAllCoupon();
+  }, []);
+  useEffect(() => {
+    setCoupon({
+      name: "",
+      description: "",
+      quantity: 0,
+      discount: 0,
+      code: "",
+    });
+    setCreateStatus(true);
+  }, [status]);
   return (
     <>
       <CRow>
@@ -101,78 +184,34 @@ const Coupon = () => {
           <CCard>
             <CCardHeader>CRUD Coupon</CCardHeader>
             <CCardBody>
-              <CForm action="" method="post" className="form__partner">
-                <CRow>
-                  <CCol sm="6">
-                    <CFormGroup>
-                      <CLabel htmlFor="phone">Coupon's Name</CLabel>
-                      <CInput
-                        type="text"
-                        id="couponName"
-                        name="couponName"
-                        placeholder="Enter Coupon's Name..."
-                      />
-                      <CFormText className="help-block">
-                        Please enter coupon's phone
-                      </CFormText>
-                    </CFormGroup>
-                    <CFormGroup>
-                      <CLabel htmlFor="phone">Coupon's Code</CLabel>
-                      <CInput
-                        type="text"
-                        id="couponCode"
-                        name="couponCode"
-                        placeholder="Enter Coupon's Code..."
-                      />
-                      <CFormText className="help-block">
-                        Please enter coupon's code
-                      </CFormText>
-                    </CFormGroup>
-                  </CCol>
-                  <CCol sm="6">
-                    <CFormGroup>
-                      <CLabel htmlFor="name">Salon Apply</CLabel>
-                      <CSelect custom name="salonApply" id="salonApply">
-                        <option>...</option>
-                        <option>All Salons</option>
-                      </CSelect>
-                      <CFormText className="help-block">
-                        Please choose salon to apply this coupon...
-                      </CFormText>
-                    </CFormGroup>
-                    <CFormGroup>
-                      <CLabel htmlFor="dateExpired">Date Expired</CLabel>
-                      <CInput type="date" id="dateExpired" name="dateExpired" />
-                      <CFormText className="help-block">
-                        Please choose date expried for this coupon
-                      </CFormText>
-                    </CFormGroup>
-                  </CCol>
-                </CRow>
-                <CRow>
-                  <CCol sm="12">
-                    <CFormGroup>
-                      <CLabel htmlFor="address">Description</CLabel>
-                      <CTextarea
-                        type="text"
-                        id="description"
-                        name="description"
-                        placeholder="Enter Coupon's Description..."
-                      />
-                      <CFormText className="help-block">
-                        Please enter coupon's description
-                      </CFormText>
-                    </CFormGroup>
-                  </CCol>
-                </CRow>
-              </CForm>
+              <CouponForm
+                handleChangeInput={(e) => handleChangeInput(e)}
+                coupon={coupon}
+              />
             </CCardBody>
             <CCardFooter>
               <CButton type="submit" size="sm" color="primary">
-                <CIcon name="cil-scrubber" /> Submit
+                {createStatus ? (
+                  <div onClick={() => onCreateCoupon()}>
+                    <CIcon name="cil-scrubber" /> Create
+                  </div>
+                ) : (
+                  <>
+                    <div onClick={() => onUpdateCoupon()}>
+                      <CIcon name="cil-scrubber" /> Submit
+                    </div>
+                  </>
+                )}
               </CButton>
-              <CButton type="reset" size="sm" color="danger" className="ml-3">
-                <CIcon name="cil-ban" /> Reset
+              <CButton
+                type="reset"
+                size="sm"
+                color="danger"
+                className="ml-3"
+                onClick={() => setStatus(!status)}
+              >
+                <CIcon name="cil-ban" />
+                Reset
               </CButton>
             </CCardFooter>
           </CCard>
@@ -185,11 +224,27 @@ const Coupon = () => {
               <CDataTable
                 columnFilter
                 tableFilter
-                items={data}
+                items={listCoupon}
                 fields={fields}
                 itemsPerPage={5}
                 pagination
                 scopedSlots={{
+                  createdDate: (item, index) => {
+                    return (
+                      <div
+                        style={{
+                          padding: "0.75rem",
+                          verticalAlign: "top",
+                          borderTop: "1px solid",
+                          borderTopColor: "#d8dbe0",
+                        }}
+                      >
+                        {moment(item.createdDate)
+                          .format("DD MM yyyy HH:mm:ss")
+                          .toString()}
+                      </div>
+                    );
+                  },
                   edit: (item, index) => {
                     return (
                       <td className="py-2" style={{ textAlign: "center" }}>
@@ -198,9 +253,9 @@ const Coupon = () => {
                           variant="outline"
                           shape="square"
                           size="sm"
-                          // onClick={() => {
-                          //   toggleDetails(index);
-                          // }}
+                          onClick={() => {
+                            getByCouponId(item._id);
+                          }}
                         >
                           <CIcon name={"cilPencil"} className="mr-1" />
                           Edit
@@ -211,9 +266,9 @@ const Coupon = () => {
                           shape="square"
                           size="sm"
                           className="ml-2"
-                          // onClick={() => {
-                          //   toggleDetails(index);
-                          // }}
+                          onClick={() => {
+                            deleteCoupon(item._id);
+                          }}
                         >
                           <CIcon name={"cilTrash"} className="mr-1" />
                           Delete
@@ -227,6 +282,18 @@ const Coupon = () => {
           </CCard>
         </CCol>
       </CRow>
+      <CModal show={modal} centered>
+        <CModalBody
+          className="d-flex justify-content-center"
+          style={{ padding: "5rem" }}
+        >
+          <CSpinner
+            color="warning"
+            variant="grow"
+            style={{ width: "4rem", height: "4rem" }}
+          />
+        </CModalBody>
+      </CModal>
     </>
   );
 };
