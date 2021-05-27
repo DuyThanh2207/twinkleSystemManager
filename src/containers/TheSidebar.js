@@ -12,7 +12,6 @@ import {
   CSidebarNavItem,
 } from "@coreui/react";
 import LogoImg from "../assets/icons/logo.png";
-import CIcon from "@coreui/icons-react";
 
 // sidebar nav config
 import navigation from "./_nav";
@@ -29,16 +28,16 @@ const TheSidebar = () => {
       <CSidebarBrand className="d-md-down-none" to="/">
         <img
           className="c-sidebar-brand-minimized"
-          // name="logo-negative"
           src={LogoImg}
           height={35}
+          alt=""
         />
-        <div
-          className="c-sidebar-brand-full"
-          style={{ paddingTop: "0.5rem" }}
-          // name="logo-negative"
-        >
-          <img src={LogoImg} style={{ height: 35, marginBottom: "1rem" }} />
+        <div className="c-sidebar-brand-full" style={{ paddingTop: "0.5rem" }}>
+          <img
+            src={LogoImg}
+            style={{ height: 35, marginBottom: "1rem" }}
+            alt=""
+          />
           <span className="localbrand">Twinkle</span>
         </div>
       </CSidebarBrand>

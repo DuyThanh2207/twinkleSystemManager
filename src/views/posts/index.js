@@ -165,6 +165,7 @@ const Partners = () => {
                     if (item.thumbnail !== "")
                       return (
                         <img
+                          alt=""
                           src={item.thumbnail}
                           className="img-fluid"
                           style={{ padding: "1.5rem" }}
@@ -173,6 +174,7 @@ const Partners = () => {
                     else
                       return (
                         <img
+                          alt=""
                           src="https://via.placeholder.com/150"
                           className="img-fluid"
                           style={{ padding: " 1.5rem" }}

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   CButton,
   CCard,
@@ -10,85 +10,57 @@ import {
   CPagination,
   CSelect,
   CFormText,
+  CModal,
+  CModalBody,
 } from "@coreui/react";
-import CIcon from "@coreui/icons-react";
+import moment from "moment";
+import * as Type from "../../reusable/Constant";
+
+const axios = require("axios");
 
 const Posts = () => {
   const [pageNumber, setPageNumber] = useState(1);
   const [pageNumberClone, setPageNumberClone] = useState(0);
-  let data = [
-    {
-      title: "If You Don't Stop It... You'll Go Blind!!!",
-      short_desc:
-        "Maecenas leo odio, condimentum id, luctus nec, molestie sed, justo. Pellentesque viverra pede ac diam. Cras pellentesque volutpat dui.\n\nMaecenas tristique, est et tempus semper, est quam pharetra magna, ac consequat metus sapien ut nunc. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Mauris viverra diam vitae quam. Suspendisse potenti.",
-      author: "Mufinella Chevin",
-    },
-    {
-      title: "Cutter, The",
-      short_desc:
-        "Morbi porttitor lorem id ligula. Suspendisse ornare consequat lectus. In est risus, auctor sed, tristique in, tempus sit amet, sem.\n\nFusce consequat. Nulla nisl. Nunc nisl.",
-      author: "Kennith Amer",
-    },
-    {
-      title: "Harry Potter and the Order of the Phoenix",
-      short_desc:
-        "Pellentesque at nulla. Suspendisse potenti. Cras in purus eu magna vulputate luctus.\n\nCum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Vivamus vestibulum sagittis sapien. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.\n\nEtiam vel augue. Vestibulum rutrum rutrum neque. Aenean auctor gravida sem.",
-      author: "Anna-diana Kobpal",
-    },
-    {
-      title: "Traces of Red",
-      short_desc:
-        "Vestibulum quam sapien, varius ut, blandit non, interdum in, ante. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Duis faucibus accumsan odio. Curabitur convallis.\n\nDuis consequat dui nec nisi volutpat eleifend. Donec ut dolor. Morbi vel lectus in quam fringilla rhoncus.",
-      author: "Audry Trigwell",
-    },
-    {
-      title: "loudQUIETloud: A Film About the Pixies",
-      short_desc:
-        "In hac habitasse platea dictumst. Etiam faucibus cursus urna. Ut tellus.\n\nNulla ut erat id mauris vulputate elementum. Nullam varius. Nulla facilisi.\n\nCras non velit nec nisi vulputate nonummy. Maecenas tincidunt lacus at velit. Vivamus vel nulla eget eros elementum pellentesque.",
-      author: "Belvia Saltrese",
-    },
-    {
-      title: "Hellsing Ultimate OVA Series",
-      short_desc:
-        "Fusce posuere felis sed lacus. Morbi sem mauris, laoreet ut, rhoncus aliquet, pulvinar sed, nisl. Nunc rhoncus dui vel sem.\n\nSed sagittis. Nam congue, risus semper porta volutpat, quam pede lobortis ligula, sit amet eleifend pede libero quis orci. Nullam molestie nibh in lectus.\n\nPellentesque at nulla. Suspendisse potenti. Cras in purus eu magna vulputate luctus.",
-      author: "Currey Marlin",
-    },
-    {
-      title: "Castle Freak",
-      short_desc:
-        "Praesent blandit. Nam nulla. Integer pede justo, lacinia eget, tincidunt eget, tempus vel, pede.\n\nMorbi porttitor lorem id ligula. Suspendisse ornare consequat lectus. In est risus, auctor sed, tristique in, tempus sit amet, sem.",
-      author: "Averell Dubock",
-    },
-    {
-      title: "Miss and the Doctors (Tirez la langue, mademoiselle)",
-      short_desc:
-        "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Proin risus. Praesent lectus.\n\nVestibulum quam sapien, varius ut, blandit non, interdum in, ante. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Duis faucibus accumsan odio. Curabitur convallis.\n\nDuis consequat dui nec nisi volutpat eleifend. Donec ut dolor. Morbi vel lectus in quam fringilla rhoncus.",
-      author: "Chelsea Bozward",
-    },
-    {
-      title: "Condition Red (Beyond the Law)",
-      short_desc:
-        "Donec diam neque, vestibulum eget, vulputate ut, ultrices vel, augue. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Donec pharetra, magna vestibulum aliquet ultrices, erat tortor sollicitudin mi, sit amet lobortis sapien sapien non mi. Integer ac neque.\n\nDuis bibendum. Morbi non quam nec dui luctus rutrum. Nulla tellus.\n\nIn sagittis dui vel nisl. Duis ac nibh. Fusce lacus purus, aliquet at, feugiat non, pretium quis, lectus.",
-      author: "Kiri Brockton",
-    },
-    {
-      title: "To Be Twenty",
-      short_desc:
-        "Phasellus sit amet erat. Nulla tempus. Vivamus in felis eu sapien cursus vestibulum.\n\nProin eu mi. Nulla ac enim. In tempor, turpis nec euismod scelerisque, quam turpis adipiscing lorem, vitae mattis nibh ligula nec sem.",
-      author: "Shauna Duns",
-    },
-  ];
+  const [modal, setModal] = useState(false);
+  const [postList, setPostList] = useState([]);
+  const [post, setPost] = useState({});
   const postsPerPage = 5;
   const pagesVisited = pageNumberClone * postsPerPage;
-
-  const displayPosts = data
+  const getAllBlog = async () => {
+    var dataClone = [];
+    await axios({
+      method: "get",
+      url: `${Type.Url}/manager/allBlogs`,
+    })
+      .then((res) => {
+        if (res && res.status === 200) {
+          dataClone = res.data.blogs.filter(
+            (item) => item.author === "System Manager"
+          );
+        }
+      })
+      .then(() => setPostList(dataClone));
+  };
+  const onShowDetailPost = (item) => {
+    setModal(true);
+    setPost({ ...post, ...item });
+  };
+  useEffect(() => {
+    getAllBlog();
+  }, []);
+  const displayPosts = postList
     .slice(pagesVisited, pagesVisited + postsPerPage)
     .map((item, key) => (
       <div className="d-flex mb-3" style={{ height: "12rem" }}>
         <img
-          src="https://thietkewebchuanseo.com/hoanghung/5/images/Blogging.jpg"
+          src={
+            item.thumbnail !== ""
+              ? item.thumbnail
+              : "https://via.placeholder.com/200"
+          }
           alt=""
-          style={{ height: "100%", objectFit: "cover" }}
+          style={{ height: "100%", objectFit: "cover", width: "12rem" }}
+          onClick={() => onShowDetailPost(item)}
         />
         <CCard style={{ width: "100%", marginBottom: "0" }}>
           <CCardHeader>{item.title}</CCardHeader>
@@ -100,24 +72,25 @@ const Posts = () => {
                 overflow: "hidden",
               }}
             >
-              {item.short_desc}
+              {item.description}
             </div>
             <div className="d-flex">
               <div>
-                <CButton className="mr-2" color="warning" shape="square">
-                  Edit
-                </CButton>
                 <CButton color="danger" shape="square">
-                  Delete
+                  Hide
                 </CButton>
               </div>
             </div>
           </CCardBody>
-          <CCardFooter>{item.author} - 12/04/2021</CCardFooter>
+          <CCardFooter>
+            {item.author} -
+            {moment(item.publishedAt).format("DD MM yyyy HH:mm:ss")}
+          </CCardFooter>
         </CCard>
       </div>
     ));
-  const pageCount = Math.ceil(data.length / postsPerPage);
+  const pageCount =
+    postList.length > 0 ? Math.ceil(postList.length / postsPerPage) : 1;
   const changePage = (selected) => {
     setPageNumber(selected);
     setPageNumberClone(selected - 1);
@@ -140,13 +113,14 @@ const Posts = () => {
                 <div>
                   <CFormText className="help-block">Sort By Name</CFormText>
                   <CSelect custom name="sortByAuthor" id="sortByAuthor">
-                    {data.map((item, key) => (
-                      <option>{item.author}</option>
-                    ))}
+                    {postList.length > 0 &&
+                      postList.map((item, key) => (
+                        <option>{item.author}</option>
+                      ))}
                   </CSelect>
                 </div>
               </div>
-              {displayPosts}
+              {postList.length > 0 && displayPosts}
             </CCardBody>
             <CCardFooter>
               <CPagination
@@ -158,6 +132,30 @@ const Posts = () => {
           </CCard>
         </CCol>
       </CRow>
+      <CModal show={modal} centered onClose={() => setModal(false)} size="xl">
+        <CModalBody
+          className="d-flex justify-content-center"
+          style={{ padding: "5rem" }}
+        >
+          <div>
+            <div
+              className="title"
+              style={{
+                fontWeight: "bold",
+                fontSize: "25px",
+                textAlign: "center",
+              }}
+            >
+              {post !== {} && post.title}
+            </div>
+            <div className="content mt-5">
+              {post !== {} && (
+                <div dangerouslySetInnerHTML={{ __html: post.content }}></div>
+              )}
+            </div>
+          </div>
+        </CModalBody>
+      </CModal>
     </>
   );
 };
