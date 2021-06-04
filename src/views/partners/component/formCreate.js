@@ -178,6 +178,7 @@ function Form({ store, handleChange, storeTypes, avatar, setAvatar }) {
                 placeholder="Enter Partner's Address..."
                 value={store.address}
                 onChange={(e) => handleChange(e)}
+                required
               />
               <CInvalidFeedback className="help-block">
                 Please provide a valid information

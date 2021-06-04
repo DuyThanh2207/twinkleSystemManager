@@ -75,7 +75,6 @@ const Partners = () => {
         res.data.stores.forEach((item, key) => {
           item = {
             ...item,
-            address: item.address[0],
             storeType: item.storeType.title,
           };
           storeClone.push(item);
@@ -113,20 +112,20 @@ const Partners = () => {
       store.email !== "" ||
       store.storeType !== "" ||
       store.openTime !== "" ||
-      store.closeTime !== ""
-      // store.address !== ""
+      store.closeTime !== "" ||
+      store.address !== ""
     ) {
       setModal(true);
       const formData = new FormData();
       formData.append("name", store.name);
       formData.append("phoneNumber", store.phoneNumber);
+      formData.append("address", store.address);
       formData.append("username", store.username);
       formData.append("email", store.email);
       formData.append("storeType", store.storeType);
       formData.append("openTime", store.openTime + " - " + store.closeTime);
       formData.append("avatar", avatar.formFile);
       formData.append("description", store.description);
-      console.log(store);
       axios({
         method: "post",
         url: `${Type.Url}/manager/createStore`,
@@ -145,14 +144,15 @@ const Partners = () => {
     item = {
       ...item,
       storeType: { ...cloneStore },
-      openTime: item.openTime.slice(0, 5).replace(/ +/g, ""),
-      closeTime: item.openTime.slice(7, 12),
+      openTime: item.openTime.split("-")[0].replace(/ +/g, ""),
+      closeTime: item.openTime.split("-")[1].replace(/ +/g, ""),
     };
     setStoreEdit(item);
     setAvatarEdit({
       ...avatarEdit,
-      VirtualPath: Type.Url + item.storeType[0].thumbnail,
+      VirtualPath: item.avatar,
     });
+    console.log("item", item);
     setCreateStatus(false);
   };
   const onSubmitEdit = () => {
@@ -162,13 +162,14 @@ const Partners = () => {
       storeEdit.email !== "" ||
       storeEdit.storeType !== "" ||
       storeEdit.openTime !== "" ||
-      storeEdit.closeTime !== ""
-      // storeEdit.address !== ""
+      storeEdit.closeTime !== "" ||
+      storeEdit.address !== ""
     ) {
       setModal(true);
       const formData = new FormData();
       formData.append("name", storeEdit.name);
       formData.append("phoneNumber", storeEdit.phoneNumber);
+      formData.append("address", storeEdit.address);
       formData.append("username", storeEdit.username);
       formData.append("email", storeEdit.email);
       formData.append("storeType", storeEdit.storeType[0]._id);
@@ -176,7 +177,8 @@ const Partners = () => {
         "openTime",
         storeEdit.openTime + " - " + storeEdit.closeTime
       );
-      formData.append("avatar", avatarEdit.formFile);
+      if (avatarEdit.formFile !== "")
+        formData.append("avatar", avatarEdit.formFile);
       formData.append("description", storeEdit.description);
       console.log(storeEdit);
       axios({

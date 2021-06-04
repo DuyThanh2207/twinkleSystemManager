@@ -84,6 +84,14 @@ const Partners = () => {
         getAllBlog();
         setModal(false);
         setLoading(false);
+        setBlog({
+          title: "",
+          description: "",
+        });
+        setThumbnail({
+          formFile: "",
+          VirtualPath: "",
+        });
       });
     }
   };
@@ -93,7 +101,7 @@ const Partners = () => {
     if (item.thumbnail)
       setThumbnail({
         ...thumbnail,
-        VirtualPath: Type.Url + item.thumbnail,
+        VirtualPath: item.thumbnail,
       });
     setContent(item.content);
     setCreateStatus(false);
@@ -103,7 +111,8 @@ const Partners = () => {
       setModal(true);
       setLoading(true);
       const formData = new FormData();
-      formData.append("thumbnail", thumbnail.formFile);
+      if (thumbnail.formFile !== "")
+        formData.append("thumbnail", thumbnail.formFile);
       formData.append("title", blog.title);
       formData.append("author", "System Manager");
       formData.append("description", blog.description);
@@ -120,6 +129,14 @@ const Partners = () => {
         getAllBlog();
         setModal(false);
         setLoading(false);
+        setBlog({
+          title: "",
+          description: "",
+        });
+        setThumbnail({
+          formFile: "",
+          VirtualPath: "",
+        });
       });
     }
   };
@@ -137,6 +154,14 @@ const Partners = () => {
       getAllBlog();
       setModal(false);
       setLoading(false);
+      setBlog({
+        title: "",
+        description: "",
+      });
+      setThumbnail({
+        formFile: "",
+        VirtualPath: "",
+      });
     });
   };
   useEffect(() => {

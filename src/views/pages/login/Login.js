@@ -16,14 +16,14 @@ import {
 } from "@coreui/react";
 import CIcon from "@coreui/icons-react";
 import { useHistory } from "react-router-dom";
-import * as Type from "../../reusable/Constant";
+import * as Type from "../../../reusable/Constant";
 
 const axios = require("axios");
 
 const Login = () => {
   let history = useHistory();
   const [userName, setUserName] = useState("admin");
-  const [password, setPassword] = useState("1");
+  const [password, setPassword] = useState("123123");
   const onLogin = async () => {
     await axios({
       method: "post",
